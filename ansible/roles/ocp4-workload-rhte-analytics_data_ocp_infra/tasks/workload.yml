@@ -111,7 +111,7 @@
     state: present
     definition: "{{ item }}"
   with_items:
-    - "{{ lookup('file', 'seldon/seldon-deployment.crd.json') }}"
+    - "{{ lookup('file', 'seldon/seldon-deployment.crd.yaml') }}"
     - "{{ lookup('file', 'seldon/seldon-user.clusterrole.yaml') }}"
 
 - name: Confirm Kafka CRDs and ClusterRoles are present
