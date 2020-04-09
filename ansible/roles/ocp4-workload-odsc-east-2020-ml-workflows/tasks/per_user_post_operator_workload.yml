@@ -7,12 +7,23 @@
 - set_fact:
     project_name: "opendatahub-{{ user_name }}"
 
-- name: "Get {{ user_name }} S3 credentials for Jupyter"
+- name: "Get {{ user_name }} S3 credentials in {{ ocs_namespace }} for Jupyter"
   k8s_facts:
-    name: "rook-ceph-object-user-ocs-storagecluster-cephobjectstore-{{ user_name }}"
+    name: "rook-ceph-object-user-my-store-{{ user_name }}"
     namespace: "{{ ocs_namespace }}"
     kind: Secret
   register: secret_out
+
+- debug:
+    msg: "{{user_name}}'s S3 {{ secret_out }}"
+  when: not silent|bool
+
+#DELETE - name: "Get {{ user_name }} S3 credentials for Jupyter"
+#DELETE   k8s_facts:
+#DELETE     name: "rook-ceph-object-user-ocs-storagecluster-cephobjectstore-{{ user_name }}"
+#DELETE     namespace: "{{ ocs_namespace }}"
+#DELETE     kind: Secret
+#DELETE   register: secret_out
 
 - name: Set the user S3 secrets as facts
   set_fact:
@@ -42,11 +53,11 @@
     namespace: "{{ project_name }}"
     definition: "{{ lookup('template', 'kafka/strimzi-cluster-operator.deployment.yaml.j2') }}"
 
-- name: Create the ODH Custom Resource
-  k8s:
-    state: present
-    namespace: "{{ project_name }}"
-    definition: "{{ lookup('template', 'opendatahub_v1alpha1_opendatahub_cr.yaml.j2') }}"
+#DELETE - name: Create the ODH Custom Resource
+#DELETE   k8s:
+#DELETE     state: present
+#DELETE     namespace: "{{ project_name }}"
+#DELETE     definition: "{{ lookup('template', 'opendatahub_v1alpha1_opendatahub_cr.yaml.j2') }}"
 
 # Leave this as the last task in the playbook.
 - name: "{{ user_name }} tasks complete"

@@ -37,18 +37,34 @@
   loop: "{{ limit_ranges.resources | list }}"
   when: limit_ranges.resources
 
-- name: "Create CephObjectStoreUser for {{ user_name }}"
+- name: "modify and apply rook object-user.yaml for {{ item }}"
   k8s:
     state: present
     definition:
       apiVersion: ceph.rook.io/v1
       kind: CephObjectStoreUser
       metadata:
+        labels:
+          user: "{{ user_name }}"
         name: "{{ user_name }}"
         namespace: "{{ ocs_namespace }}"
       spec:
-        store: ocs-storagecluster-cephobjectstore
+        store: my-store
         displayName: "{{ user_name }}"
+    merge_type: merge
+
+#DELETE - name: "Create CephObjectStoreUser for {{ user_name }}"
+#DELETE   k8s:
+#DELETE     state: present
+#DELETE     definition:
+#DELETE       apiVersion: ceph.rook.io/v1
+#DELETE       kind: CephObjectStoreUser
+#DELETE       metadata:
+#DELETE         name: "{{ user_name }}"
+#DELETE         namespace: "{{ ocs_namespace }}"
+#DELETE       spec:
+#DELETE         store: ocs-storagecluster-cephobjectstore
+#DELETE         displayName: "{{ user_name }}"
 
 - name: "Make {{ user_name }} an admin of {{ project_name }}"
   k8s:
@@ -136,10 +152,10 @@
     - "{{ lookup('template', 'opendatahub-operator.operatorgroup.yaml.j2') }}"
     - "{{ lookup('template', 'opendatahub-operator.v0.5.1.clusterserviceversion.yaml.j2') }}"
 
-- name: 'Create the OBC for {{ user_name }}'
-  k8s:
-    state: present
-    namespace: "{{ project_name }}"
-    definition: "{{ item }}"
-  loop:
-    - "{{ lookup('template', 'user-obc.yaml.j2') }}"
+      #- name: 'Create the OBC for {{ user_name }}'
+      #  k8s:
+      #    state: present
+      #    namespace: "{{ project_name }}"
+      #    definition: "{{ item }}"
+      #  loop:
+      #    - "{{ lookup('template', 'user-obc.yaml.j2') }}"

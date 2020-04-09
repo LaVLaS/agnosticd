@@ -7,27 +7,27 @@
     namespace: "openshift"
     definition: "{{ lookup('template', 'workshop-notebook-openshift-image.imagestreamtag.yaml.j2') }}"
 
-- name: "Create ceph object store in {{ ocs_namespace }} namespace"
-  k8s:
-    definition: "{{ lookup('template', 'cephobjectstore.yaml.j2') }}"
-
-- name: Wait for the RGW deployment
-  k8s_facts:
-    api_version: extensions/v1beta1
-    kind: Deployment
-    namespace: "{{ ocs_namespace }}"
-    label_selectors:
-      - app=rook-ceph-rgw
-  register: rgw_deployment
-  until:
-    - rgw_deployment is defined
-    - rgw_deployment.resources is defined
-    - rgw_deployment.resources[0] is defined
-    - rgw_deployment.resources[0].status is defined
-    - rgw_deployment.resources[0].status.readyReplicas is defined
-    - rgw_deployment.resources[0].status.readyReplicas | int > 0
-  retries: 18
-  delay: 10
+    #- name: "Create ceph object store in {{ ocs_namespace }} namespace"
+    #  k8s:
+    #    definition: "{{ lookup('template', 'cephobjectstore.yaml.j2') }}"
+    #
+    #- name: Wait for the RGW deployment
+    #  k8s_facts:
+    #    api_version: extensions/v1beta1
+    #    kind: Deployment
+    #    namespace: "{{ ocs_namespace }}"
+    #    label_selectors:
+    #      - app=rook-ceph-rgw
+    #  register: rgw_deployment
+    #  until:
+    #    - rgw_deployment is defined
+    #    - rgw_deployment.resources is defined
+    #    - rgw_deployment.resources[0] is defined
+    #    - rgw_deployment.resources[0].status is defined
+    #    - rgw_deployment.resources[0].status.readyReplicas is defined
+    #    - rgw_deployment.resources[0].status.readyReplicas | int > 0
+    #  retries: 18
+    #  delay: 10
 
 - name: Get the ceph rgw service
   k8s_facts:
@@ -39,27 +39,35 @@
   register: rgw_service
  
 - include_tasks: per_user_pre_operator_workload.yml
-  loop: "{{ range(1, num_users | int + 1, 1) | list }}"
+  loop: "{{ range(user_count_start|int, user_count_end|int)|list }}"
   loop_control:
     loop_var: user_num
+#DELETE - include_tasks: per_user_pre_operator_workload.yml
+#DELETE   loop: "{{ range(1, num_users | int + 1, 1) | list }}"
+#DELETE   loop_control:
+#DELETE     loop_var: user_num
+#DELETE - include_tasks: per_user_pre_operator_workload.yml
+#DELETE   loop: "{{ range(1, num_users | int + 1, 1) | list }}"
+#DELETE   loop_control:
+#DELETE     loop_var: user_num
 
-    #- name: wait for OBC S3 bindings
-    #  k8s_facts:
-    #    name: "user{{ item }}-odh-obc"
-    #    namespace: "opendatahub-user{{ item }}"
-    #    api_version: objectbucket.io/v1alpha1
-    #    kind: ObjectBucketClaim
-    #  register: obc_claim_out
-    #  until: 
-    #    - obc_claim_out is defined
-    #    - obc_claim_out.resources is defined
-    #    - obc_claim_out.resources[0] is defined
-    #    - obc_claim_out.resources[0].status is defined
-    #    - obc_claim_out.resources[0].status.phase is defined
-    #    - obc_claim_out.resources[0].status.phase == "Bound"
-    #  retries: 10
-    #  delay: 6
-    #  loop: "{{ range(1, num_users | int + 1, 1) | list }}"
+#DELETE- name: wait for OBC S3 bindings
+#DELETE  k8s_facts:
+#DELETE    name: "user{{ item }}-odh-obc"
+#DELETE    namespace: "opendatahub-user{{ item }}"
+#DELETE    api_version: objectbucket.io/v1alpha1
+#DELETE    kind: ObjectBucketClaim
+#DELETE  register: obc_claim_out
+#DELETE  until: 
+#DELETE    - obc_claim_out is defined
+#DELETE    - obc_claim_out.resources is defined
+#DELETE    - obc_claim_out.resources[0] is defined
+#DELETE    - obc_claim_out.resources[0].status is defined
+#DELETE    - obc_claim_out.resources[0].status.phase is defined
+#DELETE    - obc_claim_out.resources[0].status.phase == "Bound"
+#DELETE  retries: 10
+#DELETE  delay: 6
+#DELETE  loop: "{{ range(1, num_users | int + 1, 1) | list }}"
 
 - name: Wait for Open Data Hub ClusterServiceVersion to finish installing
   k8s_facts:
