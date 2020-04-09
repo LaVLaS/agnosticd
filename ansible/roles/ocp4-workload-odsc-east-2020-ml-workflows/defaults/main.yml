@@ -23,7 +23,7 @@ user_count_end: "{{user_count_start|int + num_users|int}}"
 s3_endpoint_url: null
 
 # RGW information
-rgw_service_port: 80
+rgw_service_port: 8000
 
 # Open Data Hub
 # Deploy the Open Data Hub CustomResource in the user project space,
