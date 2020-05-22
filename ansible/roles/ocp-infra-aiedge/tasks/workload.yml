@@ -4,35 +4,48 @@
     msg: "Setting up workload for user ocp_username = {{ ocp_username }}"
 
 # Set up the combined dictionary for the workload
-# 
-# To Do: Adjust the names of your dictionaries here
-- name: Set up ocp4_workload_example combined dictionary
+- name: Set up ocp_infra_aiedge combined dictionary
   set_fact:
-    ocp_workload_example: >-
-      {{ ocp_workload_example_defaults
-       | combine(ocp_workload_example_vars    | default( {} ),
-                 ocp_workload_example_secrets | default( {} ), recursive=true )
+    ocp_infra_aiedge: >-
+      {{ ocp_infra_aiedge_defaults
+       | combine(ocp_infra_aiedge_vars    | default( {} ),
+                 ocp_infra_aiedge_secrets | default( {} ), recursive=true )
       }}
+
 
 # Because now secrets are part of the combined dictionary use
 # verbosity 2 to prevent printing the dictionary during every run.
 - name: Print combined role variables
   debug:
-    var: ocp4_workload_example
+    var: ocp_infra_aiedge
     verbosity: 2
+
+- name: "Set the location directory where the repo will be saved: {{ ocp_infra_aiedge.manuela_dev_repo }}"
+  tempfile:
+    state: directory
+    suffix: manuela
+  register: manuela_root_dir
+
+- set_fact:
+    manuela_dev_repo_dir: "{{ manuela_root_dir.path }}/manuela-dev"
+    manuela_gitops_repo_dir: "{{ manuela_root_dir.path }}/manuela-gitops"
+
+# Clone the manuela dev & gitops repo
+- name: "Clone dev repo: {{ ocp_infra_aiedge.manuela_dev_repo }} @ {{ ocp_infra_aiedge.manuela_dev_repo_version }}"
+  git: 
+    repo: "{{ ocp_infra_aiedge.manuela_dev_repo }}" 
+    version: "{{ ocp_infra_aiedge.manuela_dev_repo_version }}"
+    dest: "{{ manuela_dev_repo_dir }}"
+
+- name: "Clone gitops repo: {{ ocp_infra_aiedge.manuela_gitops_repo }} @ {{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
+  git: 
+    repo: "{{ ocp_infra_aiedge.manuela_gitops_repo }}" 
+    version: "{{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
+    dest: "{{ manuela_gitops_repo_dir }}"
 
 # To Do: Implement your Workload deployment tasks here
 # If you have parameters for your workload use the "<role name> dictionary"
 # -------------------------------------------------------------------------
-
-- name: Example Workload, print dictionary values
-  debug:
-    msg: "{{ item }}"
-  loop:
-  - "Variable 1:      {{ ocp_workload_example.variable_1 }}"
-  - "Variable 2:      {{ ocp_workload_example.variable_2 }}"
-  - "Variable Secret: {{ ocp_workload_example.variable_secret }}"
-
 
 
 

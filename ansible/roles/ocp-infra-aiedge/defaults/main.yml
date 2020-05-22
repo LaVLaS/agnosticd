@@ -1,6 +1,6 @@
 ---
 become_override: False
-ocp_username: wkulhane-redhat.com
+ocp_username: llasmith-redhat.com
 silent: False
 
 # If your workload needs customization options provide variables
@@ -21,6 +21,12 @@ silent: False
 # (if defined).
 #
 # The logic in the workload should only use the dictionary "<role name>".
+ocp_infra_aiedge_defaults:
+  manuela_dev_repo: "https://github.com/lavlas/manuela-dev.git"
+  manuela_dev_repo_version: "manuela-1.0"
+  manuela_gitops_repo: "https://github.com/lavlas/manuela-gitops.git"
+  manuela_gitops_repo_version: "manuela-1.0"
+
 ocp_workload_example_defaults:
   variable_1: "value 1"
   variable_2: "value 2"
