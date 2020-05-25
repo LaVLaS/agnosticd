@@ -54,14 +54,26 @@
 - set_fact:
     cluster_wildcard_domain: cluster_config_ingress.spec.domain
 
-
-- name: "Replace all gitops repo references with {{ ocp_infra_aiedge.manuela_dev_repo }}"
+- name: "Replace all gitops repo url references with {{ ocp_infra_aiedge.manuela_dev_repo }}"
   replace: 
-    path: "{{ items }}"
+    path: "{{ manuela_gitops_repo_dir }}/{{ item }}"
+    regexp: 'https:\/\/github\.com\/sa-mw-dach\/manuela-gitops.git'
+    replace: "{{ ocp_infra_aiedge.manuela_gitops_repo }}"
   loop:
-    - config/instances/manuela-quickstart/manuela-quickstart-line-dashboard-application.yaml
-    - config/instances/manuela-quickstart/manuela-quickstart-messaging-application.yaml
-    - config/instances/manuela-quickstart/manuela-quickstart-machine-sensor-application.yaml
+    - "config/instances/manuela-quickstart/manuela-quickstart-line-dashboard-application.yaml"
+    - "config/instances/manuela-quickstart/manuela-quickstart-messaging-application.yaml"
+    - "config/instances/manuela-quickstart/manuela-quickstart-machine-sensor-application.yaml"
+
+- name: "Replace all gitops repo branch references with {{ ocp_infra_aiedge.manuela_dev_repo }}"
+  replace: 
+    path: "{{ manuela_gitops_repo_dir }}/{{ item }}"
+    regexp: '(targetRevision:\s+).+$'
+    replace: '\1{{ ocp_infra_aiedge.manuela_gitops_repo_demo_branch }}'
+  loop:
+    - "config/instances/manuela-quickstart/manuela-quickstart-line-dashboard-application.yaml"
+    - "config/instances/manuela-quickstart/manuela-quickstart-messaging-application.yaml"
+    - "config/instances/manuela-quickstart/manuela-quickstart-machine-sensor-application.yaml"
+
 
 # Leave this as the last task in the playbook.
 # --------------------------------------------
