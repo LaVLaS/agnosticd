@@ -30,7 +30,7 @@
     manuela_dev_repo_dir: "{{ manuela_root_dir.path }}/manuela-dev"
     manuela_gitops_repo_dir: "{{ manuela_root_dir.path }}/manuela-gitops"
 
-# Clone the manuela dev & gitops repo
+# Clone the manuela dev & gitops repo and create a branch for the demo
 - name: "Clone dev repo: {{ ocp_infra_aiedge.manuela_dev_repo }} @ {{ ocp_infra_aiedge.manuela_dev_repo_version }}"
   git:
     repo: "{{ ocp_infra_aiedge.manuela_dev_repo }}"
@@ -42,6 +42,14 @@
     repo: "{{ ocp_infra_aiedge.manuela_gitops_repo }}"
     version: "{{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
     dest: "{{ manuela_gitops_repo_dir }}"
+
+- name: "Set the git config user name & email"
+  shell:
+    chdir: "{{ item }}"
+    cmd: "git config user.name {{ ocp_infra_aiedge_defaults.git_config.user }}; git config user.email '{{ ocp_infra_aiedge_defaults.git_config.email }}'"
+  loop:
+    - "{{ manuela_gitops_repo_dir }}"
+    - "{{ manuela_dev_repo_dir }}"
 
 - name: Get cluster ingress config
   k8s_info:
