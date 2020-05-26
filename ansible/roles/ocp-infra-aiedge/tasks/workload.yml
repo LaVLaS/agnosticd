@@ -158,6 +158,23 @@
     - "app.kubernetes.io/name=argocd-repo-server"
     - "app.kubernetes.io/name=argocd-server"
 
+- name: Create gitops deployment agent configuration for the quickstart environment
+  k8s:
+    state: present
+    definition: "{{ lookup('file', manuela_gitops_repo_dir +'/meta/argocd-quickstart.yaml') | from_yaml_all | list }}"
+
+- name: Query the argocd-server route
+  k8s_info:
+    namespace: argocd
+    api_version: route.openshift.io/v1
+    kind: Route
+    name: argocd-server
+  register: argocd_route_object
+
+- set_fact:
+    argocd_route_url: "https://{{ argocd_route_object.resources[0].spec.host }}"
+
+
 # Leave this as the last task in the playbook.
 # --------------------------------------------
 - name: workload tasks complete
