@@ -20,6 +20,9 @@
     var: ocp_infra_aiedge
     verbosity: 2
 
+####################################################################################################
+# GIT REPO SETUP
+####################################################################################################
 - name: "Set the location directory where the repo will be saved: {{ ocp_infra_aiedge.manuela_dev_repo }}"
   tempfile:
     state: directory
@@ -189,6 +192,10 @@
 - set_fact:
     argocd_route_url: "https://{{ argocd_route_object.resources[0].spec.host }}"
 
+- name: Create manuela-dev namespaces and operators subscriptions
+  shell:
+    chdir: "{{ manuela_dev_repo_dir }}"
+    cmd: "oc delete -k namespaces_and_operator_subscriptions/manuela-temp-amq"
 
 # Leave this as the last task in the playbook.
 # --------------------------------------------
