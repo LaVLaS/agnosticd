@@ -122,17 +122,33 @@
 ################################################################################
 # ARGOCD
 ################################################################################
-- name: Create manuela-dev namespaces and operators
-  k8s:
-    state: present
-    definition: "{{ item }}"
-  loop: "{{ lookup('file', manuela_dev_repo_dir +'/quickstart/01_namespaces_and_operators.yaml') | from_yaml_all | list }}"
+- name: Create manuela-dev namespaces and operators subscriptions
+  shell:
+    chdir: "{{ manuela_dev_repo_dir }}/namespaces_and_operator_subscriptions"
+    cmd: "oc apply -k {{ item }}"
+  loop:
+    - "openshift-pipelines"
+    - "manuela-ci"
+    - "argocd"
+    - "manuela-temp-amq"
+
+- name: Wait for argocd pods to come online
+  k8s_info:
+    namespace: argocd
+    api_version: v1
+    kind: Pod
+    label_selectors: "name=argocd-operator"
+    field_selectors:
+      - status.phase=Running
+  register: argo_pod
+  until: argo_pod.resources
+  retries: 4
+  delay: 30
 
 - name: Create manuela-dev argocd
-  k8s:
-    state: present
-    definition: "{{ item }}"
-  loop: "{{ lookup('file', manuela_dev_repo_dir +'/quickstart/02_argocd.yaml') | from_yaml_all | list }}"
+  shell:
+    chdir: "{{ manuela_dev_repo_dir }}"
+    cmd: "oc apply -k infrastructure/argocd"
 
 - name: Grant service account argocd-application-controller cluster-admin privileges
   shell:
@@ -151,7 +167,6 @@
   retries: 4
   delay: 30
   loop:
-    - "name=argocd-operator"
     - "app.kubernetes.io/name=argocd-application-controller"
     - "app.kubernetes.io/name=argocd-dex-server"
     - "app.kubernetes.io/name=argocd-redis"
