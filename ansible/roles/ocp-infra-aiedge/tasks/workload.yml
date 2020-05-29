@@ -209,6 +209,49 @@
     chdir: "{{ manuela_dev_repo_dir }}"
     cmd: "oc delete -k namespaces_and_operator_subscriptions/manuela-temp-amq"
 
+####################################################################################################
+# PIPELINE SECRETS
+####################################################################################################
+# Read the example secrets yamls
+- name: Copy example tekton secrets
+  shell:
+    chdir: "{{ manuela_dev_repo_dir }}/tekton/secrets"
+    cmd: "cp {{ item[0] }} {{ item[1] }}"
+  loop:
+    - ['github-example.yaml','github.yaml']
+    - ['argocd-env-secret-example.yaml','argocd-env-secret.yaml']
+    - ['quay-build-secret-example.yaml','quay-build-secret.yaml']
+
+- name: "Set github secret user"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/secrets/github.yaml"
+    regexp: 'user: cmVwbGFjZW1l'
+    replace: "token: {{ ocp_infra_aiedge.github_user }}"
+
+- name: "Set github secret token"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/secrets/github.yaml"
+    regexp: 'token: cmVwbGFjZW1l'
+    replace: "token: {{ ocp_infra_aiedge.github_personal_access_token }}"
+
+- name: "Set argocd secret user"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/secrets/argocd-env-secret.yaml"
+    regexp: 'ARGOCD_USERNAME:.*'
+    replace: "ARGOCD_USERNAME: {{ ocp_infra_aiedge.argocd_user }}"
+
+- name: "Set argocd secret token"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/secrets/argocd-env-secret.yaml"
+    regexp: 'ARGOCD_PASSWORD:.*'
+    replace: "ARGOCD_PASSWORD: {{ ocp_infra_aiedge.argocd_secret }}"
+
+- name: "Set quay build secret"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/secrets/quay-build-secret-example.yaml"
+    regexp: '\.dockerconfigjson:.*'
+    replace: ".dockerconfigjson: {{ ocp_infra_aiedge.quay_build_secret }}"
+
 # Leave this as the last task in the playbook.
 # --------------------------------------------
 - name: workload tasks complete

@@ -31,7 +31,12 @@ ocp_infra_aiedge_defaults:
   git_config:
     user: "MANUela Demo"
     email: "manuela@github.sa-mw-dach.test"
-  quay_access_token: ""
+  # The values below must be base64 encoded as they will be loaded into secrets
+  github_user: ""
+  github_personal_access_token: ""
+  argocd_user: ""
+  argocd_secret: ""
+  quay_build_secret: ""
 
 ocp_workload_example_defaults:
   variable_1: "value 1"
