@@ -46,10 +46,22 @@
     version: "{{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
     dest: "{{ manuela_gitops_repo_dir }}"
 
-- name: Set the git config user name & email
-  shell:
-    chdir: "{{ item }}"
-    cmd: "git config user.name {{ ocp_infra_aiedge_defaults.git_config.user }}; git config user.email '{{ ocp_infra_aiedge_defaults.git_config.email }}'"
+- name: Set the git config user name
+  git_config:
+    name: user.name
+    repo: "{{ item }}"
+    scope: local
+    value: "{{ ocp_infra_aiedge_defaults.git_config.user }}"
+  loop:
+    - "{{ manuela_gitops_repo_dir }}"
+    - "{{ manuela_dev_repo_dir }}"
+
+- name: Set the git config email
+  git_config:
+    name: user.email
+    repo: "{{ item }}"
+    scope: local
+    value: "{{ ocp_infra_aiedge_defaults.git_config.email }}"
   loop:
     - "{{ manuela_gitops_repo_dir }}"
     - "{{ manuela_dev_repo_dir }}"
