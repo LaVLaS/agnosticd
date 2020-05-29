@@ -68,7 +68,7 @@
 
 # Wildcard domain is the base domain for all project routes in the cluster
 - set_fact:
-    cluster_wildcard_domain: "{{ cluster_config_ingress.resources[0].spec.domain }}"
+    core_cluster_wildcard_domain: "{{ cluster_config_ingress.resources[0].spec.domain }}"
 
 - name: "Replace all gitops repo url references with {{ ocp_infra_aiedge.manuela_dev_repo }}"
   replace: 
@@ -102,11 +102,11 @@
     chdir: "{{ manuela_gitops_repo_dir }}"
     cmd: "git add -u; git commit -m 'adapt repo targetRevision'"
 
-- name: "Replace all gitops wildcard domains with {{ cluster_wildcard_domain }}"
+- name: "Replace all gitops wildcard domains with {{ core_cluster_wildcard_domain }}"
   replace: 
     path: "{{ manuela_gitops_repo_dir }}/config/instances/manuela-quickstart/{{ item }}"
     regexp: 'apps-crc\.testing'
-    replace: "{{ cluster_wildcard_domain }}"
+    replace: "{{ core_cluster_wildcard_domain }}"
   loop:
     - line-dashboard/line-dashboard-configmap.yaml
     - line-dashboard/line-dashboard-route.yaml
@@ -148,8 +148,8 @@
       - status.phase=Running
   register: argo_pod
   until: argo_pod.resources
-  retries: 10
-  delay: 10
+  retries: 4
+  delay: 30
   loop:
     - "name=argocd-operator"
     - "app.kubernetes.io/name=argocd-application-controller"
