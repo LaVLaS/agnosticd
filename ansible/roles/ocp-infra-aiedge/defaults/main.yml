@@ -27,6 +27,7 @@ ocp_infra_aiedge_defaults:
   manuela_gitops_repo: "https://github.com/lavlas/manuela-gitops.git"
   manuela_gitops_repo_version: "manuela-1.0"
   manuela_gitops_repo_demo_branch: "manuela-demo"
+  manuela_quay_registry: "quay.io/llasmith"
   git_access_token: ""
   git_config:
     user: "MANUela Demo"

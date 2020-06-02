@@ -222,36 +222,75 @@
     - ['argocd-env-secret-example.yaml','argocd-env-secret.yaml']
     - ['quay-build-secret-example.yaml','quay-build-secret.yaml']
 
-- name: "Set github secret user"
+- name: Set github secret user
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/secrets/github.yaml"
     regexp: 'user: cmVwbGFjZW1l'
     replace: "token: {{ ocp_infra_aiedge.github_user }}"
 
-- name: "Set github secret token"
+- name: Set github secret token
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/secrets/github.yaml"
     regexp: 'token: cmVwbGFjZW1l'
     replace: "token: {{ ocp_infra_aiedge.github_personal_access_token }}"
 
-- name: "Set argocd secret user"
+- name: Set argocd secret user
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/secrets/argocd-env-secret.yaml"
     regexp: 'ARGOCD_USERNAME:.*'
     replace: "ARGOCD_USERNAME: {{ ocp_infra_aiedge.argocd_user }}"
 
-- name: "Set argocd secret token"
+- name: Set argocd secret token
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/secrets/argocd-env-secret.yaml"
     regexp: 'ARGOCD_PASSWORD:.*'
     replace: "ARGOCD_PASSWORD: {{ ocp_infra_aiedge.argocd_secret }}"
 
-- name: "Set quay build secret"
+- name: Set quay build secret
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/secrets/quay-build-secret-example.yaml"
     regexp: '\.dockerconfigjson:.*'
     replace: ".dockerconfigjson: {{ ocp_infra_aiedge.quay_build_secret }}"
 
+- name: "Replace all tekton dev repo url references with {{ ocp_infra_aiedge.manuela_dev_repo }}"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/configmaps/environment.yaml"
+    regexp: 'https:\/\/github\.com\/sa-mw-dach\/manuela-dev.git'
+    replace: "{{ ocp_infra_aiedge.manuela_dev_repo }}"
+
+- name: "Replace all tekton gitops repo url references with {{ ocp_infra_aiedge.manuela_gitops_repo }}"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/configmaps/environment.yaml"
+    regexp: 'https:\/\/github\.com\/sa-mw-dach\/manuela-gitops.git'
+    replace: "{{ ocp_infra_aiedge.manuela_gitops_repo }}"
+
+- name: "Replace all tekton quay repo url references with {{ ocp_infra_aiedge.manuela_quay_registry }}"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/configmaps/environment.yaml"
+    regexp: 'quay\.io\/manuela'
+    replace: "{{ ocp_infra_aiedge.manuela_quay_registry }}"
+
+- name: "WORKAROUND: Remove maven-repo.yaml from persistent-volume-claims component"
+  replace: 
+    path: "{{ manuela_dev_repo_dir }}/tekton/persistent-volume-claims/kustomization.yaml"
+    regexp: '- maven-repo\.yaml'
+    replace: ""
+
+- name: "WORKAROUND: Move to the manuela-ci repo before installing the pipelines"
+  shell:
+    chdir: "{{ manuela_dev_repo_dir }}"
+    cmd: "oc project manuela-ci"
+
+- name: Install pipelines
+  shell: 
+    chdir: "{{ manuela_dev_repo_dir }}"
+    cmd: "oc apply -k {{ item }}"
+  loop:
+    - "tekton/secrets"
+    - "tekton"
+####################################################################################################
+# DEPLOY GITOPS FOR CORE CLUSTER
+####################################################################################################
 # Leave this as the last task in the playbook.
 # --------------------------------------------
 - name: workload tasks complete
