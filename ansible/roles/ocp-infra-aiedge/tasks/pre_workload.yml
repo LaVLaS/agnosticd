@@ -1,6 +1,23 @@
 ---
 # Implement your Pre Workload deployment tasks here
 # -------------------------------------------------
+# Set up the combined dictionary for the workload
+- name: Set up ocp_infra_aiedge combined dictionary
+  set_fact:
+    ocp_infra_aiedge: >-
+      {{ ocp_infra_aiedge_defaults
+       | combine(ocp_infra_aiedge_vars    | default( {} ),
+                 ocp_infra_aiedge_secrets | default( {} ), recursive=true )
+      }}
+
+
+# Because now secrets are part of the combined dictionary use
+# verbosity 2 to prevent printing the dictionary during every run.
+- name: Print combined role variables
+  debug:
+    var: ocp_infra_aiedge
+    verbosity: 2
+
 
 # Leave these as the last tasks in the playbook
 # ---------------------------------------------

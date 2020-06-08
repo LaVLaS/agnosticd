@@ -3,23 +3,6 @@
   debug:
     msg: "Setting up workload for user ocp_username = {{ ocp_username }}"
 
-# Set up the combined dictionary for the workload
-- name: Set up ocp_infra_aiedge combined dictionary
-  set_fact:
-    ocp_infra_aiedge: >-
-      {{ ocp_infra_aiedge_defaults
-       | combine(ocp_infra_aiedge_vars    | default( {} ),
-                 ocp_infra_aiedge_secrets | default( {} ), recursive=true )
-      }}
-
-
-# Because now secrets are part of the combined dictionary use
-# verbosity 2 to prevent printing the dictionary during every run.
-- name: Print combined role variables
-  debug:
-    var: ocp_infra_aiedge
-    verbosity: 2
-
 ####################################################################################################
 # GIT REPO SETUP
 ####################################################################################################
@@ -270,6 +253,7 @@
     regexp: 'quay\.io\/manuela'
     replace: "{{ ocp_infra_aiedge.manuela_quay_registry }}"
 
+# We need to patch in '{"spec": {"storageClassName": "ocs-storagecluster-cephfs"}}' for each persistentvolume
 - name: "WORKAROUND: Remove maven-repo.yaml from persistent-volume-claims component"
   replace: 
     path: "{{ manuela_dev_repo_dir }}/tekton/persistent-volume-claims/kustomization.yaml"
