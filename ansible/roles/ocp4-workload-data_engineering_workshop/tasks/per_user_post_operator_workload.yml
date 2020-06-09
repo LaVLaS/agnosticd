@@ -18,6 +18,28 @@
     namespace: "{{ project_name }}"
     definition: "{{ lookup('template', 'workshop-notebook.imagestream.yaml.j2') }}"
 
+##################################################
+# ARGO WORKFLOW
+##################################################
+- name: Create the Argo Workflow Service Account
+  k8s:
+    state: present
+    namespace: "{{ project_name }}"
+    definition: "{{ lookup('template', 'argo-workflow.serviceaccount.yaml.j2') }}"
+
+- name: Create the Argo Workflow Role
+  k8s:
+    state: present
+    namespace: "{{ project_name }}"
+    definition: "{{ lookup('template', 'argo-workflow.role.yaml.j2') }}"
+
+- name: Create the Argo Workflow RoleBinding
+  k8s:
+    state: present
+    namespace: "{{ project_name }}"
+    definition: "{{ lookup('template', 'argo-workflow.rolebinding.yaml.j2') }}"
+##################################################
+
 - name: Create the ODH Custom Resource
   k8s:
     state: present

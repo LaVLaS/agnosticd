@@ -1,14 +1,15 @@
+
 apiVersion: opendatahub.io/v1alpha1
 kind: OpenDataHub
 metadata:
-  name: example-opendatahub
+  name: data-engineering-workshop
 spec:
   # JupyterHub deployment developed by Graham Dumpleton - https://github.com/aicoe/jupyterhub-ocp-oauth
   aicoe-jupyterhub:
     # Deploy the ODH aicoe-jupyterhub role if True
     odh_deploy: true
     notebook_cpu: 1
-    notebook_memory: 2Gi
+    notebook_memory: 1Gi
     registry: 'quay.io'
     repository: 'odh-jupyterhub'
     notebook_images:
@@ -18,8 +19,8 @@ spec:
       deploy_cuda_notebooks: False
 
     storage_class: ''
-    db_memory: 1Gi
-    jupyterhub_memory: 1Gi
+    db_memory: 512Mi
+    jupyterhub_memory: 512Mi
     notebook_image: 's2i-minimal-notebook:3.6'
     s3_endpoint_url: ''
     #GPU mode defines a method used to spawn GPU enabled containers. Allow values are: None/empty (default), selinux, privileged
@@ -38,13 +39,13 @@ spec:
     spark_pythonpath: "$PYTHONPATH:/opt/app-root/lib/python3.6/site-packages/:/opt/app-root/lib/python3.6/site-packages/pyspark/python/:/opt/app-root/lib/python3.6/site-packages/pyspark/python/lib/py4j-0.8.2.1-src.zip"
 
     # Number of master and worker nodes for the spark cluster
-    spark_worker_nodes: 2
+    spark_worker_nodes: 1
     spark_master_nodes: 1
 
     # Amount of cpu & memory to allocate to the each node in the cluster.
     # This value will be applied to all worker and master nodes
-    spark_memory: 4Gi
-    spark_cpu: 3
+    spark_memory: 512Mi
+    spark_cpu: 1
     # Spark image to use in the cluster
     spark_image: "quay.io/opendatahub/spark-cluster-image:spark22python36"
 
@@ -85,7 +86,7 @@ spec:
 
   # Deployment of Prometheus and Grafana for Monitoring of ODH
   monitoring:
-    odh_deploy: true
+    odh_deploy: false
     enable_pushgateway: false
 
   # Deployment of Two Sigma's BeakerX Jupyter notebook
@@ -98,17 +99,15 @@ spec:
  
   # Deployment of Argo 
   argo:
-    odh_deploy: false
+    odh_deploy: true
 
   # Deployment of Superset
   superset:
-    odh_deploy: false
-    # Superset Version
-    version: 0.34.0
+    odh_deploy: true
     # Create an admin user
     superset_admin:
-      admin_usr: userKPJ
-      admin_psw: 7ujmko0
+      admin_usr: admin
+      admin_psw: workshop
       admin_fname: admin
       admin_lname: admin
       admin_email: admin@fab.org
@@ -121,11 +120,10 @@ spec:
 
   # Tech preview feature
   data-catalog:
-    odh_deploy: false
-    aws_access_key_id: changeme
-    aws_secret_access_key: changeme
-    s3_endpoint: s3.foo.com
-    s3_port: 8080
+    odh_deploy: true
+    aws_access_key_id: 'changeme'
+    aws_secret_access_key: 'changeme'
+    s3_endpoint: 'changeme'
     s3_is_secure: false
 
     # Parameters to create a dedicated spark cluster for Data Catalog
@@ -137,7 +135,7 @@ spec:
       worker_memory: 2Gi
       worker_cpu: 2
       spark_cluster_name: "spark-cluster-data-catalog"
-      spark_image: "quay.io/opendatahub/spark-cluster-image:spark24"
+      spark_image: "quay.io/rmartine/spark-cluster-image:workshop"
 
     hive-metastore:
       # Parameters for Hive Metastore Database (PostgreSQL)
@@ -145,7 +143,7 @@ spec:
         image: "registry.access.redhat.com/rhscl/postgresql-96-rhel7"
         username: changeme
         password: changeme
-        memory_limit: 1Gi
+        memory_limit: 512Mi
         volume_capacity: 10Gi
         driver: org.postgresql.Driver
 
