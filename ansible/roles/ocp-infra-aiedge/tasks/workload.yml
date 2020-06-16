@@ -4,6 +4,32 @@
     msg: "Setting up workload for user ocp_username = {{ ocp_username }}"
 
 ####################################################################################################
+# OCS STORAGE SETUP
+####################################################################################################
+#oc patch storageclass gp2 -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+- name: "Disable {{ ocp_infra_aiedge.original_default_storage_class }} as the default StorageClass"
+  k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: StorageClass
+      metadata:
+        name: "{{ ocp_infra_aiedge.original_default_storage_class }}"
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "false"
+
+- name: "Enable {{ ocp_infra_aiedge.ocs_storage_class }} as the default StorageClass"
+  k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: StorageClass
+      metadata:
+        name: "{{ ocp_infra_aiedge.ocs_storage_class }}"
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+
+####################################################################################################
 # GIT REPO SETUP
 ####################################################################################################
 - name: "Set the location directory where the repo will be saved: {{ ocp_infra_aiedge.manuela_dev_repo }}"
@@ -253,12 +279,13 @@
     regexp: 'quay\.io\/manuela'
     replace: "{{ ocp_infra_aiedge.manuela_quay_registry }}"
 
-# We need to patch in '{"spec": {"storageClassName": "ocs-storagecluster-cephfs"}}' for each persistentvolume
-- name: "WORKAROUND: Remove maven-repo.yaml from persistent-volume-claims component"
-  replace: 
-    path: "{{ manuela_dev_repo_dir }}/tekton/persistent-volume-claims/kustomization.yaml"
-    regexp: '- maven-repo\.yaml'
-    replace: ""
+#DELETE
+## We need to patch in '{"spec": {"storageClassName": "ocs-storagecluster-cephfs"}}' for each persistentvolume
+#- name: "WORKAROUND: Remove maven-repo.yaml from persistent-volume-claims component"
+#  replace: 
+#    path: "{{ manuela_dev_repo_dir }}/tekton/persistent-volume-claims/kustomization.yaml"
+#    regexp: '- maven-repo\.yaml'
+#    replace: ""
 
 - name: "WORKAROUND: Move to the manuela-ci repo before installing the pipelines"
   shell:
