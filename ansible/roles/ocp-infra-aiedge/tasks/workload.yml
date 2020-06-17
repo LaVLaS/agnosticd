@@ -39,21 +39,26 @@
   register: manuela_root_dir
 
 - set_fact:
+    manuela_repo_dir: "{{ manuela_root_dir.path }}/manuela"
     manuela_dev_repo_dir: "{{ manuela_root_dir.path }}/manuela-dev"
     manuela_gitops_repo_dir: "{{ manuela_root_dir.path }}/manuela-gitops"
 
 # Clone the manuela dev & gitops repo and create a branch for the demo
-- name: "Clone dev repo: {{ ocp_infra_aiedge.manuela_dev_repo }} @ {{ ocp_infra_aiedge.manuela_dev_repo_version }}"
+- name: "Clone the MANUela repos"
   git:
-    repo: "{{ ocp_infra_aiedge.manuela_dev_repo }}"
-    version: "{{ ocp_infra_aiedge.manuela_dev_repo_version }}"
-    dest: "{{ manuela_dev_repo_dir }}"
-
-- name: "Clone gitops repo: {{ ocp_infra_aiedge.manuela_gitops_repo }} @ {{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
-  git:
-    repo: "{{ ocp_infra_aiedge.manuela_gitops_repo }}"
-    version: "{{ ocp_infra_aiedge.manuela_gitops_repo_version }}"
-    dest: "{{ manuela_gitops_repo_dir }}"
+    repo: "{{ item.repo }}"
+    version: "{{ item.version }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { repo: "{{ ocp_infra_aiedge.manuela_repo }}",
+        version: "{{ ocp_infra_aiedge.manuela_repo_version }}",
+        dest: "{{ manuela_repo_dir }}" }
+    - { repo: "{{ ocp_infra_aiedge.manuela_dev_repo }}",
+        version: "{{ ocp_infra_aiedge.manuela_dev_repo_version }}",
+        dest: "{{ manuela_dev_repo_dir }}" }
+    - { repo: "{{ ocp_infra_aiedge.manuela_gitops_repo }}",
+        version: "{{ ocp_infra_aiedge.manuela_gitops_repo_version }}",
+        dest: "{{ manuela_gitops_repo_dir }}" }
 
 - name: Set the git config user name
   git_config:
@@ -62,6 +67,7 @@
     scope: local
     value: "{{ ocp_infra_aiedge_defaults.git_config.user }}"
   loop:
+    - "{{ manuela_repo_dir }}"
     - "{{ manuela_gitops_repo_dir }}"
     - "{{ manuela_dev_repo_dir }}"
 
@@ -72,6 +78,7 @@
     scope: local
     value: "{{ ocp_infra_aiedge_defaults.git_config.email }}"
   loop:
+    - "{{ manuela_repo_dir }}"
     - "{{ manuela_gitops_repo_dir }}"
     - "{{ manuela_dev_repo_dir }}"
 
@@ -80,6 +87,7 @@
     chdir: "{{ item }}"
     cmd: "git checkout -b {{ ocp_infra_aiedge_defaults.manuela_gitops_repo_demo_branch }}"
   loop:
+    - "{{ manuela_repo_dir }}"
     - "{{ manuela_gitops_repo_dir }}"
     - "{{ manuela_dev_repo_dir }}"
 
@@ -148,7 +156,7 @@
 ################################################################################
 - name: Create manuela-dev namespaces and operators subscriptions
   shell:
-    chdir: "{{ manuela_dev_repo_dir }}/namespaces_and_operator_subscriptions"
+    chdir: "{{ manuela_repo_dir }}/namespaces_and_operator_subscriptions"
     cmd: "oc apply -k {{ item }}"
   loop:
     - "openshift-pipelines"
@@ -171,7 +179,7 @@
 
 - name: Create manuela-dev argocd
   shell:
-    chdir: "{{ manuela_dev_repo_dir }}"
+    chdir: "{{ manuela_repo_dir }}"
     cmd: "oc apply -k infrastructure/argocd"
 
 - name: Grant service account argocd-application-controller cluster-admin privileges
@@ -215,7 +223,7 @@
 
 - name: Create manuela-dev namespaces and operators subscriptions
   shell:
-    chdir: "{{ manuela_dev_repo_dir }}"
+    chdir: "{{ manuela_repo_dir }}"
     cmd: "oc delete -k namespaces_and_operator_subscriptions/manuela-temp-amq"
 
 ####################################################################################################
