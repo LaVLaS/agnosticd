@@ -6,7 +6,6 @@
 ####################################################################################################
 # OCS STORAGE SETUP
 ####################################################################################################
-#oc patch storageclass gp2 -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
 - name: "Disable {{ ocp_infra_aiedge.original_default_storage_class }} as the default StorageClass"
   k8s:
     state: present
@@ -137,7 +136,7 @@
 - name: "Replace all gitops wildcard domains with {{ core_cluster_wildcard_domain }}"
   replace: 
     path: "{{ manuela_gitops_repo_dir }}/config/instances/manuela-quickstart/{{ item }}"
-    regexp: 'apps-crc\.testing'
+    regexp: 'OCP_WILDCARD_DOMAIN'
     replace: "{{ core_cluster_wildcard_domain }}"
   loop:
     - line-dashboard/line-dashboard-configmap.yaml
@@ -208,7 +207,7 @@
 - name: Create gitops deployment agent configuration for the quickstart environment
   k8s:
     state: present
-    definition: "{{ lookup('file', manuela_gitops_repo_dir +'/meta/argocd-quickstart.yaml') | from_yaml_all | list }}"
+    definition: "{{ lookup('file', manuela_gitops_repo_dir +'/meta/argocd-manuela-demo-core.yaml') | from_yaml_all | list }}"
 
 - name: Query the argocd-server route
   k8s_info:
@@ -286,14 +285,6 @@
     path: "{{ manuela_dev_repo_dir }}/tekton/configmaps/environment.yaml"
     regexp: 'quay\.io\/manuela'
     replace: "{{ ocp_infra_aiedge.manuela_quay_registry }}"
-
-#DELETE
-## We need to patch in '{"spec": {"storageClassName": "ocs-storagecluster-cephfs"}}' for each persistentvolume
-#- name: "WORKAROUND: Remove maven-repo.yaml from persistent-volume-claims component"
-#  replace: 
-#    path: "{{ manuela_dev_repo_dir }}/tekton/persistent-volume-claims/kustomization.yaml"
-#    regexp: '- maven-repo\.yaml'
-#    replace: ""
 
 - name: "WORKAROUND: Move to the manuela-ci repo before installing the pipelines"
   shell:
